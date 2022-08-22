@@ -358,22 +358,36 @@ namespace IngameScript
 
                     bool isAirtight = airVents.All(a => a.CanPressurize);
 
-                    if (isAirtight && (ExecutedFrom == ExecutionLocations.OutsideDoor || ExecutedFrom == ExecutionLocations.Airlock))
+                    if (Mode == AirlockMode.Standard)
                     {
-                        depressurizeStart();
-                    }
-                    if (isAirtight && ExecutedFrom == ExecutionLocations.InsideDoor)
+                        if (isAirtight && (ExecutedFrom == ExecutionLocations.OutsideDoor || ExecutedFrom == ExecutionLocations.Airlock))
+                        {
+                            depressurizeStart();
+                        }
+                        if (isAirtight && ExecutedFrom == ExecutionLocations.InsideDoor)
+                        {
+                            insideDoors.ForEach(d => d.OpenDoor());
+                        }
+                        if (!isAirtight && ExecutedFrom == ExecutionLocations.OutsideDoor)
+                        {
+                            outsideDoors.ForEach(d => d.OpenDoor());
+                        }
+                        if (!isAirtight && (ExecutedFrom == ExecutionLocations.InsideDoor || ExecutedFrom == ExecutionLocations.Airlock))
+                        {
+                            pressurizeStart();
+                        }
+                    } else if (Mode == AirlockMode.Hangar)
                     {
-                        insideDoors.ForEach(d => d.OpenDoor());
+                        if (isAirtight)
+                        {
+                            depressurizeStart();
+                        }
+                        if (!isAirtight)
+                        {
+                            pressurizeStart();
+                        }  
                     }
-                    if (!isAirtight && ExecutedFrom == ExecutionLocations.OutsideDoor)
-                    {
-                        outsideDoors.ForEach(d => d.OpenDoor());
-                    }
-                    if (!isAirtight && (ExecutedFrom == ExecutionLocations.InsideDoor || ExecutedFrom == ExecutionLocations.Airlock))
-                    {
-                        pressurizeStart();
-                    }
+                   
                     if (ExecutedFrom == ExecutionLocations.Terminal && pressurize)
                     {
                         pressurizeStart();
@@ -444,6 +458,9 @@ namespace IngameScript
             {
                 insideDoors.ForEach(d => d.Enabled = true);
                 insideDoors.ForEach(d => d.OpenDoor());
+            } else if (Mode == AirlockMode.Hangar)
+            {
+                outsideDoors.ForEach((d) => d.CloseDoor());
             }
         }
         public void depressurizeEnd()
